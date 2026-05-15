@@ -14,8 +14,6 @@ function tick() {
 > This is in BETA and I've copied it directly from my world code.
 
 ```js
-toLoad = [71, 37, -20];
-
 function initFuncIfNeeded(fun = "tick") {
     if (!globalThis.counts) { globalThis.counts = {}; }
     if (globalThis.counts[fun]?.count === undefined) { globalThis.counts = {}; globalThis.counts[`${fun}`] = {}; globalThis.counts[`${fun}`].count = 0; }
@@ -49,7 +47,7 @@ function wrap(text) {
     for (let lineNum in splitText) {
         let original = splitText[lineNum];
 
-        newText.push(`benchmark("${fun}", () => { api.log(".") }, ${lineNum})`);
+        newText.push(`benchmark("${fun}", () => { ${original} }, ${lineNum})`);
     }; newText.push(`; resetCount("${fun}")`);
 
     newText = newText.join(";\n");
@@ -89,6 +87,4 @@ function runSafeCodeFromCodeBlock(func = "tick", pos = [0, 0, 0]) {
     }
     eval(stored);
 }
-
-// updateeeeeeee
 ```
