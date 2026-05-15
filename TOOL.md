@@ -1,3 +1,14 @@
+# Usage
+> [!Note]
+> This is very simple as of right now and does not support everything, eg other callbacks or certain syntax.
+
+## Add loaded safe cde
+```js
+function tick() {
+    runSafeCodeFromCodeBlock("tick", [x, y, z])
+}
+```
+
 # The tool
 > [!Important]
 > This is in BETA and I've copied it directly from my world code.
