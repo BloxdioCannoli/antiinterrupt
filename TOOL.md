@@ -39,11 +39,16 @@ function wrap(text) {
         let original = splitText[lineNum];
 
         newText.push(`benchmark("${fun}", () => { api.log(".") }, ${lineNum})`);
-    }
+    }; newText.push(`; resetCount("${fun}")`);
 
     newText = newText.join(";\n");
 
     return newText;
+}
+
+function initStoredCodeIfNeeded(func = "tick") {
+    if (!globalThis.storedCode) { globalThis.storedCode = {}; }
+    if (!globalThis.storedCode[func]) { globalThis.storedCode[func] = null; }
 }
 
 function addBenchmarksToCodeBlock(pos) {
@@ -53,5 +58,26 @@ function addBenchmarksToCodeBlock(pos) {
     return wrap(text);
 }
 
-// updateeeeeeea
+function getStoredSafeCode(func = "tick") {
+    initStoredCodeIfNeeded(func);
+    let stored = globalThis.storedCode[func];
+    return stored;
+}
+
+function storeSafeCode(func = "tick", code = "") {
+    initStoredCodeIfNeeded(func);
+    globalThis.storedCode[func] = code;
+    return globalThis.storedCode[func];
+}
+
+function runSafeCodeFromCodeBlock(func = "tick", pos = [0, 0, 0]) {
+    let stored = getStoredSafeCode(func);
+    if (!stored) {
+        let code = addBenchmarksToCodeBlock(pos);
+        stored = storeSafeCode(func, code);
+    }
+    eval(stored);
+}
+
+// updateeeeeeee
 ```
