@@ -7,3 +7,9 @@ We make use of `api.isNearInterrupt` and `return`, and automatically asign break
 - [ ] Fully added automatic wrapping<br>
 - [ ] Code loader-integrated<br>
 - [ ] Compatability with all callbacks/integrate all callbacks into tick
+
+# Known bugs (report via issues or pull requests)
+
+## Failed to run code error
+- Has a "Kicked: Failed to run code, please report to bloxd developers on discord" kick message after a while.
+- Has no errors in chat
