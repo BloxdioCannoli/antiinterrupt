@@ -14,6 +14,7 @@ function tick() {
 > This is in BETA and I've copied it directly from my world code.
 
 ```js
+
 function initFuncIfNeeded(fun = "tick") {
     if (!globalThis.counts) { globalThis.counts = {}; }
     if (globalThis.counts[fun]?.count === undefined) { globalThis.counts = {}; globalThis.counts[`${fun}`] = {}; globalThis.counts[`${fun}`].count = 0; }
@@ -35,7 +36,7 @@ function getCount(fun = "tick") {
 }
 
 function benchmark(fun, code = () => { }, countNum) {
-    return eval(`if (getCount("${fun}") === ${countNum}) { function run() { if (api.isNearInterrupt()) { return; } else { code(); addCount("${fun}"); } }; run(); }`);
+    return eval(`if (getCount("${fun}") === ${countNum}) { globalThis.run = () => { if (api.isNearInterrupt()) { return; } else { code(); addCount("${fun}"); } }; globalThis.run(); }`);
 }
 
 function wrap(text) {
