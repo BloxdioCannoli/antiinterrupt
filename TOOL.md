@@ -43,9 +43,14 @@ function breakUp(text) {
     let newText = [];
 
     for (let s in splitText) {
-        newText.push(splitText[s].split(";"));
+        let splitAgain = splitText[s].split(";");
+        for (let t in splitAgain) {
+            let text = splitAgain[t];
+            newText.push(text.trim());
+            let newTextNum = newText.length - 1;
+        }
     }
-    return splitText;
+    return newText;
 }
 
 function rejoinText(text) {
