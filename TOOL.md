@@ -14,84 +14,111 @@ function tick() {
 > This is in BETA and I've copied it directly from my world code.
 
 ```js
-function initFuncIfNeeded(fun = "tick") {
-    if (!globalThis.counts) { globalThis.counts = {}; }
-    if (globalThis.counts[fun]?.count === undefined) { globalThis.counts = {}; globalThis.counts[`${fun}`] = {}; globalThis.counts[`${fun}`].count = 0; }
+toLoad = [71, 37, -20];
+oldGlobalThis = null;
+let tickNum = 0;
+let maxTick = 1;
+
+function removeIds(ids = []) {
+    /*if (!Array.isArray(ids)) ids = [ids];
+    globalThis.ranIds = (globalThis.ranIds || []).filter(id => !ids.includes(id));*/
 }
 
-function resetCount(fun = "tick") {
-    initFuncIfNeeded(fun);
-    globalThis.counts[fun].count = 0;
+function initIdsIfNeeded() {
+    if (!globalThis.ranIds) globalThis.ranIds = [];
 }
 
-function addCount(fun = "tick") {
-    initFuncIfNeeded(fun);
-    globalThis.counts[fun].count++;
-}
-
-function getCount(fun = "tick") {
-    initFuncIfNeeded(fun);
-    return globalThis.counts[fun].count;
-}
-
-function benchmark(fun, code = () => { }, countNum) {
-    return eval(`if (getCount("${fun}") === ${countNum}) { globalThis.run = () => { if (api.isNearInterrupt()) { return; } else { code(); addCount("${fun}"); } }; globalThis.run(); }`);
+function benchmark(fun, code = () => { }) {
+    initIdsIfNeeded();
+    return eval(`
+    if (!globalThis.ranIds.includes("${fun}")) {
+        globalThis.run = () => {
+            if (api.isNearInterrupt()) {
+                return;
+            } else {
+                code();
+                globalThis.ranIds.push("${fun}");
+            }
+        };
+        globalThis.run();
+    }`);
 }
 
 function breakUp(text) {
     let splitText = text.split("\n");
     let newText = [];
-
     for (let s in splitText) {
         let splitAgain = splitText[s].split(";");
         for (let t in splitAgain) {
             let text = splitAgain[t];
             newText.push(text.trim());
-            let newTextNum = newText.length - 1;
         }
     }
     return newText;
 }
 
 function rejoinText(text) {
-    let splitText = [...text];
-    splitText = splitText.join(";");
-    return splitText;
+    return [...text].join(";");
 }
 
-function wrap(text) {
+let lastBenchmarkId = "";
+
+function wrap(text, fun = "tick") {
     let splitText = breakUp(text);
     let newText = [];
 
-    let fun = "tick";
+    let nowStart = api.now();
+
+    let scope = [fun];
+    let curScopeNum = 0;
+
+    let idsToRemove = {};
 
     for (let lineNum in splitText) {
         let original = splitText[lineNum];
 
-        newText.push(`benchmark("${fun}", () => { ${original} }, ${lineNum})`);
-    }; newText.push(`; resetCount("${fun}")`);
+        let curScope = scope[curScopeNum];
+        if (!idsToRemove[curScope]) idsToRemove[curScope] = [];
 
-    newText = rejoinText(newText);
+        let benchmarkId = `${curScope}_${lineNum}_${nowStart}`;
 
-    return newText;
+        if (original.at(-1) == "{") {
+            newText.push(`${original}`);
+            scope.push(benchmarkId);
+            curScopeNum++;
+        } else if (original.at(-1) == "}" || original.at(-2) == "}") {
+            newText.push(`; removeIds(["${idsToRemove[curScope].join('","')}"])`);
+            newText.push(`}`);
+            idsToRemove[curScope] = [];
+            curScopeNum--;
+        } else {
+            newText.push(`benchmark("${curScope}", () => { ${original} })`);
+            idsToRemove[curScope].push(benchmarkId);
+        }
+
+        lastBenchmarkId = benchmarkId;
+    }
+
+    //newText.push(`; removeIds("${fun}")`);
+    newText.push(`; globalThis.ranIds=[]`);
+    return rejoinText(newText);
 }
 
 function initStoredCodeIfNeeded(func = "tick") {
-    if (!globalThis.storedCode) { globalThis.storedCode = {}; }
-    if (!globalThis.storedCode[func]) { globalThis.storedCode[func] = null; }
+    if (!globalThis.storedCode) globalThis.storedCode = {};
+    if (!globalThis.storedCode[func]) globalThis.storedCode[func] = null;
 }
 
 function addBenchmarksToCodeBlock(pos) {
     let block = api.getBlock(pos);
-    if (block == "Unloaded") { return null; }
+    if (block == "Unloaded") return null;
     let text = api.getBlockData(...pos).persisted.shared.text;
     return wrap(text);
 }
 
 function getStoredSafeCode(func = "tick") {
     initStoredCodeIfNeeded(func);
-    let stored = globalThis.storedCode[func];
-    return stored;
+    return globalThis.storedCode[func];
 }
 
 function storeSafeCode(func = "tick", code = "") {
@@ -107,5 +134,21 @@ function runSafeCodeFromCodeBlock(func = "tick", pos = [0, 0, 0]) {
         stored = storeSafeCode(func, code);
     }
     eval(stored);
+}
+
+function logToCodeBlock(text) {
+    let pos = [60, 38, -15];
+
+    api.setBlock(pos, "Code Block");
+
+    api.setBlockData(...pos, {
+        persisted: {
+            shared: {
+                text: `/*
+${text}
+*/`
+            }
+        }
+    });
 }
 ```
