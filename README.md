@@ -6,10 +6,11 @@ We make use of `api.isNearInterrupt` and `return`, and automatically asign break
 1. The player places down code blocks and writes their coordinates into World Code after pasting in this tool. Their code runs without interruptions.
 
 # The progress
-- [x] Added breakpoints<br>
-- [x] Added some automatic wrapping<br>
-- [x] Fully added automatic wrapping<br>
-- [ ] Code loader-integrated<br>
+- [x] Added breakpoints
+- [x] Added some automatic wrapping
+- [x] Fully added automatic wrapping
+- [x] Fully added proper iteration and cleanup
+- [ ] Code loader-integrated
 - [ ] Compatability with all callbacks/integrate all callbacks into tick
 
 # Known bugs (report via issues or pull requests)
